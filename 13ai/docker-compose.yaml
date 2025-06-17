@@ -1,0 +1,29 @@
+name: ai_project
+version: '3.8'
+
+services:
+  websocket_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python server_websocket.py
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - socketio_server
+
+  socketio_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python server.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1

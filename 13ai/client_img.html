@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Image Sender</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+</head>
+<body>
+    <h1>WebSocket Image Sender</h1>
+    <p>Check console for messages</p>
+    <p id="txt"></p>
+    <script>
+        const socket = io('http://localhost:5000', {
+            query: {
+                user: 'source',
+                did: 'test_01',
+            }
+        });
+        const txt = document.getElementById("txt");
+
+        // Function to fetch an image and convert it to base64
+        async function fetchImageAsBase64(url) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+    });
+
+    // Get image dimensions
+    const img = new Image();
+    await new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.src = base64Image;
+    });
+
+    return {
+        base64Image,
+        width: img.width,
+        height: img.height
+    };
+        }
+
+        // Handle connection
+        socket.on('connect', async () => {
+            console.log('Connected to server');
+
+            // Example: Fetch an image from a URL (or local server)
+            const imageUrl = 'https://cdn.balancia.co.id/wp-content/uploads/2024/07/ship-survive-at-sea.jpg?strip=all&lossy=1&quality=92&webp=92&avif=80&sharp=1&ssl=1'; // Replace with your image URL
+            let { base64Image, width, height } = await fetchImageAsBase64(imageUrl);
+
+            console.log(width,height)
+            // Send data continuously every second
+            let counter = 0;
+            setInterval(() => {
+                const data = {
+                    did: 'test_01',
+                    img: base64Image,
+                    img_w: width,
+                    img_h: height,
+                    timestamp: new Date().toISOString(),
+                    message: `Data packet ${counter}`
+                };
+                socket.emit('source', data);
+            }, 1000);
+        });
+
+        // Handle server response
+        socket.on('server_response', (data) => {
+            console.log('Server response:', data);
+            if (data['status']) {
+                txt.innerText = data['received']['timestamp'];
+            }
+        });
+
+        // Handle disconnection
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+    </script>
+</body>
+</html>

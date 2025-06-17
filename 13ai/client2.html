@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Client 2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+</head>
+<body>
+    <h1>WebSocket Client 2</h1>
+    <p>Check console for messages</p>
+    <p id="txt"></p>
+    <script>
+        // Connect to the Socket.IO server
+        const socket = io('http://localhost:5000',{
+            query:{
+                user:'dest',
+                did:'test_01',
+            }
+        });
+        txt=document.getElementById("txt");
+
+        // Handle connection
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            // socket.emit('dest', {did:'drone_01'});
+            // console.log('Request:', {did:'drone_01'});
+
+            // Send data continuously every second
+            // let counter = 0;
+            // setInterval(() => {
+            //     const data = {
+            //         message: `Get data ${counter}`,
+            //         timestamp: new Date().toISOString(),
+            //         did:'drone_01'
+            //     };
+            //     socket.emit('dest', data);
+            //     console.log('Sent:', data);
+            //     counter++;
+            // }, 1000);
+        });
+
+        // Handle server response
+        socket.on('server_response', (data) => {
+            console.log('Server response:', data);
+            if(data['status']){
+                txt.innerText=data['timestamp'];
+
+            }
+            
+        });
+
+        // Handle disconnection
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+    </script>
+</body>
+</html>
